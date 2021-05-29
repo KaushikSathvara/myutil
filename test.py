@@ -190,7 +190,7 @@ def test2(*args):
                           function3=(test_print, (2,)))
 
 
-def test3():
+def test_text_pd_similarity():
     from utilmy import text
     from difflib import SequenceMatcher
     from pandas._testing import assert_series_equal
@@ -219,7 +219,6 @@ def test_data():
 if __name__ == "__main__":
     test1()
     test2()
-    test3()
     test_data()
 
 
