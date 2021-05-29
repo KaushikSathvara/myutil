@@ -12,13 +12,13 @@ def pd_random(ncols=7, nrows=100):
    return df
 
 
-def test0():
+def test_utilmy_plot():
     df = pd_random(7, 100)
     from utilmy import pd_plot_multi
     pd_plot_multi(df, cols_axe1=['0', '1'])
 
 
-def test1():
+def test_utilmy_pd_os_session():
    from utilmy import (pd_show, git_current_hash, )
 
    ############################################################################
@@ -59,6 +59,7 @@ def test1():
    df2 = pd_read_file("data/parquet/fab*.*", n_pool=1000 )
    assert len(df2) == 2 * n0, f"df1 {len(df2) }, original {n0}"
 
+   
 
 
    ###################################################################################
@@ -178,7 +179,7 @@ def test1():
 
 
    
-def test2(*args):
+def test_decorators_os(*args):
     from utilmy.decorators import os_multithread
       
     def test_print(*args):
@@ -190,6 +191,43 @@ def test2(*args):
                           function3=(test_print, (2,)))
 
 
+#######################################################################################
+def pd_generate_data(ncols=7, nrows=100):
+    """
+    Generate sample data for function testing
+    categorical features for anova test
+    """
+    import pandas as pd, random
+    import numpy as np 
+    np.random.seed(444) 
+    numerical = [[ random.random() for i in range(0, ncols)] for j in range(0, nrows) ]
+    categorical2 =  data = np.random.choice(  a=[0, 1],  size=100,  p=[0.7, 0.3]  ) 
+    categorical1 =  data = np.random.choice(  a=[4, 5, 6],  size=100,  p=[0.5, 0.3, 0.2]  ) 
+    df = pd.DataFrame(numerical, columns = [str(i) for i in range(0,ncols)])
+    df['cat1']=categorical1
+    df['cat2']=categorical2
+    df['cat1']= np.where( df['cat1'] == 4,'low',np.where(df['cat1'] == 5, 'High','V.High'))
+    return df
+
+
+def test_tabular_test():
+        """
+        ANOVA test
+        """
+        from utilmy.tabular import test_anova
+        df=pd_generate_data(7, 100)
+        test_anova(df, 'cat1', 'cat2')
+
+        from utilmy.tabular import test_normality2
+        test_normality2(df, '0', "Shapiro")
+
+        from utilmy.tabular import test_plot_qqplot
+        test_plot_qqplot(df, '1')
+
+
+
+
+########################################################################################
 def test_text_pd_similarity():
     from utilmy import text
     from difflib import SequenceMatcher
@@ -209,17 +247,20 @@ def test_text_pd_similarity():
 
     assert_series_equal(original_value, output_value, check_names=False)
       
-def test_data():
-   from utilmy.text import pd_text_getcluster, test_lsh
-   test_lsh()
+
+def test_text_pdcluster():
+       from utilmy.text import pd_text_getcluster, test_lsh
+       test_lsh()
 
    
    
    
 if __name__ == "__main__":
-    test1()
-    test2()
-    test_data()
+    test_utilmy_pd_os_session()
+    test_decorators_os()
+    # test_tabular_test()
+    # test_text_similarity()
+    # test_text_pdcluster()
 
 
 
