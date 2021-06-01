@@ -1,15 +1,19 @@
 # pylint: disable=C0321,C0103,C0301,E1305,E1121,C0302,C0330,C0111,W0613,W0611,R1705
 # -*- coding: utf-8 -*-
-import os, sys, time, datetime,inspect
-
+import os
+import sys
+import time
+import datetime
+import inspect
 
 
 #########################################################################################
 def pd_random(ncols=7, nrows=100):
-   import pandas as pd, random
-   ll = [[ random.random() for i in range(0, ncols)] for j in range(0, nrows) ]
-   df = pd.DataFrame(ll, columns = [str(i) for i in range(0,ncols)])
-   return df
+    import pandas as pd
+    import random
+    ll = [[random.random() for i in range(0, ncols)] for j in range(0, nrows)]
+    df = pd.DataFrame(ll, columns=[str(i) for i in range(0, ncols)])
+    return df
 
 
 def test_utilmy_plot():
@@ -19,169 +23,156 @@ def test_utilmy_plot():
 
 
 def test_utilmy_pd_os_session():
-   from utilmy import (pd_show, git_current_hash, )
+    from utilmy import (pd_show, git_current_hash, )
 
-   ############################################################################
-   from utilmy import pd_read_file
-   import pandas as pd, random
-   ncols = 7
-   nrows = 100
-   ll = [[ random.random() for i in range(0, ncols)] for j in range(0, nrows) ]
-   # Required for it to be detected in Session's globals()
-   global df
-   df = pd.DataFrame(ll, columns = [str(i) for i in range(0,ncols)])
-   n0 = len(df)
-   s0 = df.values.sum()
-   os.makedirs("data/parquet/", exist_ok= True)
+    ############################################################################
+    from utilmy import pd_read_file
+    import pandas as pd
+    import random
+    ncols = 7
+    nrows = 100
+    ll = [[random.random() for i in range(0, ncols)] for j in range(0, nrows)]
+    # Required for it to be detected in Session's globals()
+    global df
+    df = pd.DataFrame(ll, columns=[str(i) for i in range(0, ncols)])
+    n0 = len(df)
+    s0 = df.values.sum()
+    os.makedirs("data/parquet/", exist_ok=True)
 
-   ##### m_job , n_pool tests  ##############################
-   ncopy = 20
-   for i in range(0, ncopy) :
-      df.to_csv( f"data/parquet/ppf_{i}.csv.gz",  compression='gzip' , index=False)
+    ##### m_job , n_pool tests  ##############################
+    ncopy = 20
+    for i in range(0, ncopy):
+        df.to_csv(f"data/parquet/ppf_{i}.csv.gz",
+                  compression='gzip', index=False)
 
-   df1 = pd_read_file("data/parquet/ppf*.gz", verbose=1, n_pool= 7 )
+    df1 = pd_read_file("data/parquet/ppf*.gz", verbose=1, n_pool=7)
 
-   assert len(df1) == ncopy * n0,         f"df1 {len(df1) }, original {n0}"
-   assert round(df1.values.sum(), 5) == round(ncopy * s0,5), f"df1 {df1.values.sum()}, original {ncopy*s0}"
+    assert len(df1) == ncopy * n0,         f"df1 {len(df1) }, original {n0}"
+    assert round(df1.values.sum(), 5) == round(
+        ncopy * s0, 5), f"df1 {df1.values.sum()}, original {ncopy*s0}"
 
+    ####################################################
+    df.to_csv("data/parquet/fa0b2.csv.gz",   compression='gzip', index=False)
+    df.to_csv("data/parquet/fab03.csv.gz",   compression='gzip', index=False)
+    df.to_csv("data/parquet/fabc04.csv.gz",  compression='gzip', index=False)
+    df.to_csv("data/parquet/fa0bc05.csv.gz", compression='gzip', index=False)
 
-   ####################################################
-   df.to_csv( "data/parquet/fa0b2.csv.gz",   compression='gzip' , index=False)
-   df.to_csv( "data/parquet/fab03.csv.gz",   compression='gzip' , index=False)
-   df.to_csv( "data/parquet/fabc04.csv.gz",  compression='gzip' , index=False)
-   df.to_csv( "data/parquet/fa0bc05.csv.gz", compression='gzip' , index=False)
+    df1 = pd_read_file("data/parquet/fab*.*", verbose=1)
+    assert len(df1) == 2 * n0, f"df1 {len(df1) }, original {n0}"
 
-   df1 = pd_read_file("data/parquet/fab*.*", verbose=1)
-   assert len(df1) == 2 * n0, f"df1 {len(df1) }, original {n0}"
+    # Stresss n_pool
+    df2 = pd_read_file("data/parquet/fab*.*", n_pool=1000)
+    assert len(df2) == 2 * n0, f"df1 {len(df2) }, original {n0}"
 
+    ###################################################################################
+    ###################################################################################
+    from utilmy import git_repo_root
+    print(git_repo_root())
+    assert not git_repo_root() == None, "err git repo"
 
-   ##### Stresss n_pool
-   df2 = pd_read_file("data/parquet/fab*.*", n_pool=1000 )
-   assert len(df2) == 2 * n0, f"df1 {len(df2) }, original {n0}"
+    ###################################################################################
+    ###################################################################################
+    from utilmy import os_makedirs, os_system, os_removedirs
+    os_makedirs('ztmp/ztmp2/myfile.txt')
+    os_makedirs('ztmp/ztmp3/ztmp4')
+    os_makedirs('/tmp/one/two')
+    os_makedirs('/tmp/myfile')
+    os_makedirs('/tmp/one/../mydir/')
+    os_makedirs('./tmp/test')
+    os.system("ls ztmp")
 
-   
+    path = ["/tmp/", "ztmp/ztmp3/ztmp4", "/tmp/",
+            "./tmp/test", "/tmp/one/../mydir/"]
+    for p in path:
+        f = os.path.exists(os.path.abspath(p))
+        assert f == True, "path " + p
 
+    rev_stat = os_removedirs("ztmp/ztmp2")
+    assert not rev_stat == False, "cannot delete root folder"
 
-   ###################################################################################
-   ###################################################################################
-   from utilmy import git_repo_root
-   print(git_repo_root())
-   assert not git_repo_root() == None, "err git repo"
+    res = os_system(f" ls . ",  doprint=True)
+    print(res)
+    res = os_system(f" ls . ",  doprint=False)
 
+    ###################################################################################
+    ###################################################################################
+    from utilmy import global_verbosity
+    print('verbosity', global_verbosity(__file__, "config.json", 40,))
+    print('verbosity', global_verbosity('../', "config.json", 40,))
+    print('verbosity', global_verbosity(__file__))
 
+    verbosity = 40
+    gverbosity = global_verbosity(__file__)
+    assert gverbosity == 5, "incorrect default verbosity"
+    gverbosity = global_verbosity(__file__, "config.json", 40,)
+    assert gverbosity == verbosity, "incorrect verbosity "
 
-   ###################################################################################
-   ###################################################################################
-   from utilmy import os_makedirs, os_system, os_removedirs
-   os_makedirs('ztmp/ztmp2/myfile.txt')
-   os_makedirs('ztmp/ztmp3/ztmp4')
-   os_makedirs('/tmp/one/two')
-   os_makedirs('/tmp/myfile')
-   os_makedirs('/tmp/one/../mydir/')
-   os_makedirs('./tmp/test')
-   os.system("ls ztmp")
+    ###################################################################################
+    ###################################################################################
+    from utilmy import Session
+    sess = Session("ztmp/session")
+    sess.save('mysess', globals(), '01')
+    os.system("ls ztmp/session")
 
-   path = ["/tmp/", "ztmp/ztmp3/ztmp4", "/tmp/", "./tmp/test","/tmp/one/../mydir/"]
-   for p in path:
-       f = os.path.exists(os.path.abspath(p))
-       assert  f == True, "path " + p
+    sess.save('mysess', globals(), '02')
+    sess.show()
 
-   rev_stat = os_removedirs("ztmp/ztmp2")
-   assert not rev_stat == False, "cannot delete root folder"
+    import glob
+    flist = glob.glob("ztmp/session/" + "/*")
+    for f in flist:
+        t = os.path.exists(os.path.abspath(f))
+        assert t == True, "session path not created "
 
-   res = os_system( f" ls . ",  doprint=True)
-   print(res)
-   res = os_system( f" ls . ",  doprint=False)
+        pickle_created = os.path.exists(os.path.abspath(f + "/df.pkl"))
+        assert pickle_created == True, "Pickle file not created"
 
+    sess.load('mysess')
+    sess.load('mysess', None, '02')
 
+    ###################################################################################
+    from utilmy.decorators import timer
 
-   ###################################################################################
-   ###################################################################################
-   from utilmy import global_verbosity
-   print('verbosity', global_verbosity(__file__, "config.json", 40,))
-   print('verbosity', global_verbosity('../', "config.json", 40,))
-   print('verbosity', global_verbosity(__file__))
+    @timer
+    def dummy_func():
+        time.sleep(2)
 
-   verbosity = 40
-   gverbosity = global_verbosity(__file__)
-   assert gverbosity == 5, "incorrect default verbosity"
-   gverbosity =global_verbosity(__file__, "config.json", 40,)
-   assert gverbosity == verbosity, "incorrect verbosity "
+    class DummyClass:
+        @timer
+        def method(self):
+            time.sleep(3)
 
+    dummy_func()
+    a = DummyClass()
+    a.method()
 
+    ###################################################################################
+    from utilmy.decorators import profiler_deco, profiler_context
 
+    @profiler_deco
+    def profiled_sum():
+        return sum(range(100000))
 
+    profiled_sum()
 
-   ###################################################################################
-   ###################################################################################
-   from utilmy import Session
-   sess = Session("ztmp/session")
-   sess.save('mysess', globals(), '01')
-   os.system("ls ztmp/session")
+    with profiler_context():
+        x = sum(range(1000000))
+        print(x)
 
-   sess.save('mysess', globals(), '02')
-   sess.show()
+    ###################################################################################
+    from utilmy import profiler_start, profiler_stop
 
-   import glob
-   flist = glob.glob("ztmp/session/" + "/*")
-   for f in flist:
-       t = os.path.exists(os.path.abspath(f))
-       assert  t == True, "session path not created "
+    profiler_start()
+    print(sum(range(1000000)))
+    profiler_stop()
 
-       pickle_created = os.path.exists(os.path.abspath(f + "/df.pkl"))
-       assert  pickle_created == True, "Pickle file not created"
-
-   sess.load('mysess')
-   sess.load('mysess', None, '02')
-
-   
-   ###################################################################################   
-   from utilmy.decorators import timer
-   @timer
-   def dummy_func():
-       time.sleep(2)
-
-   class DummyClass:
-       @timer
-       def method(self):
-           time.sleep(3)
-
-   dummy_func()
-   a = DummyClass()
-   a.method()
-
-
-   ###################################################################################
-   from utilmy.decorators import profiler_deco, profiler_context
-   
-   @profiler_deco
-   def profiled_sum():
-       return sum(range(100000))
-
-   profiled_sum()
-
-   with profiler_context():
-       x = sum(range(1000000))
-       print(x)
-
-      
-   ###################################################################################
-   from utilmy import profiler_start, profiler_stop
-   
-   profiler_start()
-   print(sum(range(1000000)))
-   profiler_stop()
-
-   
-   ###################################################################################
-   from utilmy import os_platform_os
-   assert os_platform_os() == sys.platform
+    ###################################################################################
+    from utilmy import os_platform_os
+    assert os_platform_os() == sys.platform
 
 
-   
 def test_decorators_os(*args):
     from utilmy.decorators import os_multithread
-      
+
     def test_print(*args):
         print(args[0]*args[0])
         return args[0]*args[0]
@@ -197,34 +188,36 @@ def pd_generate_data(ncols=7, nrows=100):
     Generate sample data for function testing
     categorical features for anova test
     """
-    import pandas as pd, random
-    import numpy as np 
-    np.random.seed(444) 
-    numerical = [[ random.random() for i in range(0, ncols)] for j in range(0, nrows) ]
-    categorical2 =  data = np.random.choice(  a=[0, 1],  size=100,  p=[0.7, 0.3]  ) 
-    categorical1 =  data = np.random.choice(  a=[4, 5, 6],  size=100,  p=[0.5, 0.3, 0.2]  ) 
-    df = pd.DataFrame(numerical, columns = [str(i) for i in range(0,ncols)])
-    df['cat1']=categorical1
-    df['cat2']=categorical2
-    df['cat1']= np.where( df['cat1'] == 4,'low',np.where(df['cat1'] == 5, 'High','V.High'))
+    import pandas as pd
+    import random
+    import numpy as np
+    np.random.seed(444)
+    numerical = [[random.random() for i in range(0, ncols)]
+                 for j in range(0, nrows)]
+    categorical2 = data = np.random.choice(a=[0, 1],  size=100,  p=[0.7, 0.3])
+    categorical1 = data = np.random.choice(
+        a=[4, 5, 6],  size=100,  p=[0.5, 0.3, 0.2])
+    df = pd.DataFrame(numerical, columns=[str(i) for i in range(0, ncols)])
+    df['cat1'] = categorical1
+    df['cat2'] = categorical2
+    df['cat1'] = np.where(df['cat1'] == 4, 'low', np.where(
+        df['cat1'] == 5, 'High', 'V.High'))
     return df
 
 
 def test_tabular_test():
-        """
-        ANOVA test
-        """
-        from utilmy.tabular import test_anova
-        df=pd_generate_data(7, 100)
-        test_anova(df, 'cat1', 'cat2')
+    """
+    ANOVA test
+    """
+    from utilmy.tabular import test_anova
+    df = pd_generate_data(7, 100)
+    test_anova(df, 'cat1', 'cat2')
 
-        from utilmy.tabular import test_normality2
-        test_normality2(df, '0', "Shapiro")
+    from utilmy.tabular import test_normality2
+    test_normality2(df, '0', "Shapiro")
 
-        from utilmy.tabular import test_plot_qqplot
-        test_plot_qqplot(df, '1')
-
-
+    from utilmy.tabular import test_plot_qqplot
+    test_plot_qqplot(df, '1')
 
 
 ########################################################################################
@@ -237,31 +230,27 @@ def test_text_pd_similarity():
     list1 = ['dog', 'cat']
     list2 = ['doggy', 'cat']
 
-    cols = ['name','pet_name']
+    cols = ['name', 'pet_name']
     sample_df = pd.DataFrame(zip(list1, list2), columns=cols)
     original_value = text.pd_similarity(sample_df, cols)['score']
 
     check_similarity = lambda *x: SequenceMatcher(None, *x[0]).ratio()
-    
-    output_value = pd.Series(sample_df.apply(lambda x: check_similarity(x[[*cols]]), axis=1), name="score")
+
+    output_value = pd.Series(sample_df.apply(
+        lambda x: check_similarity(x[[*cols]]), axis=1), name="score")
 
     assert_series_equal(original_value, output_value, check_names=False)
-      
+
 
 def test_text_pdcluster():
-       from utilmy.text import pd_text_getcluster, test_lsh
-       test_lsh()
+    from utilmy.text import pd_text_getcluster, test_lsh
+    test_lsh()
 
-   
-   
-   
+
 if __name__ == "__main__":
     test_utilmy_pd_os_session()
     test_decorators_os()
+    test_text_pd_similarity()
     # test_tabular_test()
     # test_text_similarity()
     # test_text_pdcluster()
-
-
-
-
